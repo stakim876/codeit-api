@@ -1,6 +1,6 @@
 // ~/instagrem-api/app.js
 // Express로 서버를 만들고, data의 게시물을 JSON으로 응답한다.
-import export from 'express';
+import express from 'express';
 import { posts } from './data/posts.js';
 
 const app = express();
@@ -16,7 +16,7 @@ app.get('/api/posts', (req, res) => {
 });
 
 // URL의 id와 같은 게시물 하나만 찾아 보낸다. 없으면 404.
-app.get('/api/posts/id', (req, res) => {
+app.get('/api/posts/:id', (req, res) => {
   const id = Number(req.params.id);
   const post = posts.find((one) => one.id === id);
   if (!post) {
@@ -30,10 +30,10 @@ app.get('/api/posts/id', (req, res) => {
 });
 
 // 위에서 못 찾은 주소는 404 JSON으로 응답한다.
-app.use((req. res) => {
-  res.status(404).json((
+app.use((req, res) => {
+  res.status(404).json({
     message: '그런 주소는 존재하지 않습니다.'
-  ));  
+  });
 });
 
 // 3000번 포트에서 요청을 기다린다.
