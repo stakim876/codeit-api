@@ -1,3 +1,8 @@
 node_modules/
 .DS_Store
 .omc/
+
+# 연결 주소가 들어 있는 .env는 커밋하지 않는다. 예시는 .env.example만 남긴다.
+.env
+.env.*
+!.env.example
