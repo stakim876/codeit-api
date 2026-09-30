@@ -1,5 +1,4 @@
 // ~/instagram-api/data/posts.js
-// /api/posts 가 그대로 응답하는 게시물 목록. id로 하나를 찾는다.
 export const posts = [
   {
     id: 1,

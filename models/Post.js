@@ -1,6 +1,6 @@
 // ~/instagram-api/models/Post.js
 // 게시물이 MongoDB에 어떤 필드로 저장되는지 정하고, Post 모델로 꺼낸다.
-import mongoose from 'mongose';
+import mongoose from 'mongoose';
 
 const postSchema = new mongoose.Schema({
   username: { type: String, required: true },

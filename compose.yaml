@@ -1,0 +1,17 @@
+# ~/instagram-api/compose.yaml
+# Postgres를 컨테이너로 띄운다. DB 이름은 환경 변수로 정하고, 데이터는 볼륨에 남긴다.
+services:
+  db:
+    image: postgres:18
+    container_name: instagram-db
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: instagram
+    volumes:
+      - instagram-data:/var/lib/postgresql
+
+volumes:
+  instagram-data:
