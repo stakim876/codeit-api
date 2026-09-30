@@ -1,14 +1,19 @@
 // ~/instagram-api/seed.js
-// data의 게시물을 MongoDB에 넣는다. 넣기 전에 기존 게시물은 비운다.
-import mongoose from 'mongoose';
-import Post from './models/Post.js';
+// minutesAgo를 만든 시각으로 바꿔 게시물과 댓글을 넣는다. 넣기 전에 테이블을 비운다.
+import { prisma } from './db.js';
 import { posts } from './data/posts.js';
+import { comments } from './data/comments.js';
 
-await mongoose.connect(process.env.MONGO_URL);
+function withTimes({ minutesAgo, ...row }) {
+  const createdAt = new Date(Date.now() - minutesAgo * 60 * 1000);
+  return { ...row, createdAt, updatedAt: createdAt };
+}
 
-await Post.deleteMany({});
-await Post.insertMany(posts);
+await prisma.$executeRaw`TRUNCATE TABLE comments, posts RESTART IDENTITY`;
 
-console.log(`게시물 ${posts.length}개를 넣었어요.`);
+await prisma.post.createMany({ data: posts.map(withTimes) });
+await prisma.comment.createMany({ data: comments.map(withTimes) });
 
-await mongoose.disconnect();
+console.log(`게시물 ${posts.length}개와 댓글 ${comments.length}개를 넣었어요.`);
+
+await prisma.$disconnect();

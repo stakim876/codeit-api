@@ -23,7 +23,7 @@ model Post {
   @@map("posts")
 }
 
-// 댓글은 postId로 게시글 하나에 속한다.
+// 댓글은 postId로 게시글 하나에 속하고, 수정되면 updatedAt이 갱신된다.
 model Comment {
   id        Int      @id @default(autoincrement())
   postId    Int      @map("post_id")
@@ -31,6 +31,7 @@ model Comment {
   content   String
   likeCount Int      @default(0) @map("like_count")
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   post      Post     @relation(fields: [postId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("comments")

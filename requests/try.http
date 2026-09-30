@@ -1,0 +1,19 @@
+GET http://localhost:3000/api/posts/2
+
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+
+{
+  "id": 777,
+  "username": "hacker",
+  "postImage": "/images/post-9.jpg"
+}
+
+PATCH http://localhost:3000/api/posts/9999
+Content-Type: application/json
+
+{
+  "likeCount": 7
+}
+
+GET http://localhost:3000/api/posts
