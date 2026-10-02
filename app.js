@@ -1,5 +1,4 @@
 // ~/instagram-api/app.js
-// 게시물 CRUD는 라우터와 서비스로 나누고, HttpError는 여기서 상태 코드로 응답한다.
 import express from 'express';
 import cors from 'cors';
 import postsRouter from './routes/posts.js';
@@ -14,6 +13,7 @@ app.use(cors());
 // 모든 요청 초입에 작동해서 클라이언트가 보낸 json을 재조립
 app.use(express.json());
 
+
 app.get('/', (req, res) => {
   res.send('인스타그램 서버가 살아 있어요');
 });
@@ -21,14 +21,18 @@ app.get('/', (req, res) => {
 // /api/posts 아래 요청은 게시물 라우터가 받는다.
 app.use('/api/posts', postsRouter);
 
+
 app.use((req, res) => {
   res.status(404).json({
     message: '그런 주소는 존재하지 않습니다.',
   });
 });
 
+
+// 전역 예외처리 구간
 app.use((err, req, res, next) => {
-  // 서비스와 검증이 던진 에러는 메시지와 details를 그대로 돌려준다.
+
+  // 서비스쪽에서 에러를 던지면 받아줄 코드를 작성
   if (err instanceof HttpError) {
     const body = { message: err.message };
     if (err.details) body.details = err.details;
@@ -44,6 +48,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: '서버에서 문제가 생겼어요' });
 });
+
 
 app.listen(PORT, () => {
   console.log(`서버가 ${PORT}번 포트에서 기다리고 있어요.`);
