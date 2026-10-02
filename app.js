@@ -1,8 +1,9 @@
 // ~/instagram-api/app.js
-// 게시물 CRUD는 라우터와 서비스로 나눠 Prisma가 Postgres를 다루게 한다.
+// 게시물 CRUD는 라우터와 서비스로 나누고, HttpError는 여기서 상태 코드로 응답한다.
 import express from 'express';
 import cors from 'cors';
 import postsRouter from './routes/posts.js';
+import { HttpError } from './errors.js';
 
 const PORT = process.env.PORT ?? 3000;
 
@@ -27,6 +28,14 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  // 서비스와 검증이 던진 에러는 메시지와 details를 그대로 돌려준다.
+  if (err instanceof HttpError) {
+    const body = { message: err.message };
+    if (err.details) body.details = err.details;
+    res.status(err.status).json(body);
+    return;
+  }
+
   if (err.status) {
     res.status(err.status).json({ message: '보낸 내용을 읽을 수 없어요' });
     return;

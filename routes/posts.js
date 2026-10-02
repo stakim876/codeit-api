@@ -1,5 +1,8 @@
 import express from 'express';
 import * as postService from '../services/postService.js';
+import { NotFoundError } from '../errors.js';
+import { validateBody } from '../middlewares/validate.js';
+import { postCreateSchema, postUpdateSchema } from '../schemas/postSchema.js';
 
 const router = express.Router();
 
@@ -8,7 +11,8 @@ function parseId(req, res, next) {
   const id = Number(req.params.id);
 
   if (!Number.isInteger(id)) {
-    res.status(404).json({ message: '그런 게시물은 없어요' });
+    // 응답을 여기서 끝내지 않고, 전역 처리기가 404를 만들게 넘긴다.
+    next(new NotFoundError('그런 게시물은 없어요'));
     return;
   }
 
@@ -27,61 +31,23 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', parseId, async (req, res) => {
   const post = await postService.getPost(req.postId);
-
-  if (!post) {
-    res.status(404).json({
-      message: '그런 게시물은 존재하지 않습니다.',
-    });
-    return;
-  }
-
   res.json(post);
 });
 
-router.post('/', async (req, res) => {
-  const { username, profileImage, postImage, postAlt, content } = req.body;
-
-  if (!username || !postImage) {
-    res.status(400).json({ message: 'username과 postImage는 꼭 있어야 해요' });
-    return;
-  }
-
-  // 허용한 필드만 골라 넣는다.
-  const newPost = await postService.createPost({
-    username, profileImage, postImage, postAlt, content,
-  });
-
+// 스키마를 통과한 본문만 저장한다.
+router.post('/', validateBody(postCreateSchema), async (req, res) => {
+  const newPost = await postService.createPost(req.body);
   res.status(201).json(newPost);
 });
 
-router.patch('/:id', parseId, async (req, res) => {
-  const { username, profileImage, postImage, postAlt, content, likeCount } = req.body;
-
-  const post = await postService.updatePost(req.postId, {
-    username,
-    profileImage,
-    postImage,
-    postAlt,
-    content,
-    likeCount,
-  });
-
-  if (!post) {
-    res.status(404).json({ message: '그런 게시물은 없어요' });
-    return;
-  }
-
+// 수정은 보낸 필드만 스키마로 검사한다.
+router.patch('/:id', parseId, validateBody(postUpdateSchema), async (req, res) => {
+  const post = await postService.updatePost(req.postId, req.body);
   res.json(post);
 });
 
 router.delete('/:id', parseId, async (req, res) => {
   const deleted = await postService.removePost(req.postId);
-
-  if (!deleted) {
-    res.status(404).json({ message: '그런 게시물은 없어요' });
-    return;
-  }
-
   res.json(deleted);
 });
 
