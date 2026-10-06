@@ -1,4 +1,3 @@
-// Postgres 클라이언트는 여기서 한 번만 만들어 같이 쓴다.
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 

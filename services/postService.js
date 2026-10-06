@@ -2,7 +2,7 @@
 import { prisma } from '../db.js';
 import { BadRequestError, NotFoundError } from '../errors.js';
 
-// 쓸 필드만 가져온다. 사진은 캐러셀 순서인 imgOrder대로 읽는다.
+// 쓸 필드만 가져온다. 사진은 imgOrder 순서다.
 const postFields = {
   id: true,
   authorId: true,
@@ -16,7 +16,7 @@ const postFields = {
   images: { select: { imageUrl: true }, orderBy: { imgOrder: 'asc' } },
 };
 
-// 테이블은 작성자 번호와 사진 행을 갖고, 화면에는 이름과 사진 주소 목록을 준다.
+// 화면에는 이름과 사진 주소 목록을 준다.
 function flatten({ author, images, ...post }) {
   return {
     ...post,
@@ -31,10 +31,9 @@ const withRelations = {
   images: { orderBy: { imgOrder: 'asc' } },
 };
 
-// 작성자 이름이 있으면 그 사람 글만 가져온다.
 export async function getPosts({ username, limit }) {
   const posts = await prisma.post.findMany({
-    where: username ? { author: { username } } : undefined,
+    where: { author: { username } },
     select: postFields,
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -54,9 +53,10 @@ export async function getPost(id) {
   return flatten(post);
 }
 
-// 글과 사진을 한 번에 만든다. 사진 차례는 목록 순서다.
+// 글과 사진을 한 번에 만든다.
 export async function createPost({ imageUrls, ...data }) {
   try {
+
     const post = await prisma.post.create({
       data: {
         ...data,
@@ -70,7 +70,7 @@ export async function createPost({ imageUrls, ...data }) {
       include: withRelations,
     });
 
-    return flatten(post);
+    return getPost(post.id);
   } catch (error) {
     if (error.code === 'P2003')
       throw new BadRequestError('그런 사용자는 없어요');
@@ -83,7 +83,7 @@ export async function updatePost(id, data) {
     const post = await prisma.post.update({
       where: { id },
       data,
-      include: withRelations,
+      include: { author: true },
     });
 
     return flatten(post);
@@ -99,7 +99,7 @@ export async function removePost(id) {
   try {
     const post = await prisma.post.delete({
       where: { id },
-      include: withRelations,
+      include: { author: true },
     });
 
     return flatten(post);

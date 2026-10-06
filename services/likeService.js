@@ -2,10 +2,9 @@
 import { prisma } from '../db.js';
 import { NotFoundError } from '../errors.js';
 
-// 몇 번을 불러도 결과는 눌린 상태 하나다. 이미 있으면 행이 안 늘고 숫자도 안 오른다.
+// 여러 번 눌러도 한 번이다. 좋아요 행과 like_count는 함께 끝나야 한다.
 export async function likePost(postId, userId) {
   try {
-    // 좋아요 행과 like_count 변경은 함께 끝나야 한다. 하나라도 실패하면 둘 다 없던 일이 된다.
     return await prisma.$transaction(async (tx) => {
       const { count } = await tx.postLike.createMany({
         data: [{ postId, userId }],
@@ -21,7 +20,7 @@ export async function likePost(postId, userId) {
   }
 }
 
-// 몇 번을 불러도 결과는 안 눌린 상태 하나다.
+// 취소도 행 삭제와 숫자 변경이 한 묶음이다.
 export async function unlikePost(postId, userId) {
   return prisma.$transaction(async (tx) => {
     const { count } = await tx.postLike.deleteMany({
@@ -32,10 +31,10 @@ export async function unlikePost(postId, userId) {
   });
 }
 
-// 화면 숫자는 따로 적어 둔 컬럼이다. SQL로 그 숫자만 고쳐서 updated_at은 그대로 둔다.
+// like_count만 SQL로 고쳐서 updated_at은 그대로 둔다.
 async function changeLikeCount(tx, postId, amount, liked) {
   await tx.$executeRaw`
-    UPDATE posts SET like_count = like_count + ${amount} WHERE id = ${postId}`;
+    UPDATE posts SET like_count = like_count +${amount} WHERE id =${postId}`;
 
   const post = await tx.post.findUnique({ where: { id: postId } });
   if (!post) throw new NotFoundError('그런 게시물은 없어요');

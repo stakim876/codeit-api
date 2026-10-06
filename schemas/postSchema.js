@@ -1,9 +1,10 @@
 // ~/instagram-api/schemas/postSchema.js
-// 생성은 작성자 번호와 사진 목록이 필수다. 수정은 보낸 필드만 검사하고, likeCount는 0 이상 정수다.
+// 생성은 작성자 번호, postImage, 사진 목록이 필수다. 수정은 보낸 필드만 검사한다.
 import { z } from 'zod';
 
 const postFields = {
   authorId: z.number().int().positive(),
+  postImage: z.string().min(1),
   postAlt: z.string().optional(),
   content: z.string().optional(),
 };

@@ -1,5 +1,4 @@
 // ~/instagram-api/seed.js
-// minutesAgo를 만든 시각으로 바꿔 사람, 게시물, 사진, 댓글, 답글을 넣는다. 넣기 전에 테이블을 비운다.
 import { prisma } from './db.js';
 import { posts } from './data/posts.js';
 import { comments } from './data/comments.js';
@@ -11,7 +10,7 @@ function withTimes({ minutesAgo, ...row }) {
 
 await prisma.$executeRaw`TRUNCATE TABLE post_likes, post_images, comments, posts, users RESTART IDENTITY`;
 
-// 사람을 먼저 넣는다. 글만 쓴 사람과 댓글만 쓴 사람을 함께 모은다.
+// 사람을 먼저 넣는다. 글과 댓글이 가리킬 대상이다.
 const replies = comments.flatMap((comment) => comment.replies ?? []);
 const names = [];
 
@@ -32,21 +31,19 @@ await prisma.user.createMany({
 const users = await prisma.user.findMany();
 const idOf = (username) => users.find((user) => user.username === username).id;
 
-// 게시물과 그 사진을 한 번에 만든다.
+// 글과 사진을 한 번에 만든다.
 for (const { username, profileImage, images, ...post } of posts) {
   await prisma.post.create({
     data: {
       ...withTimes(post),
       authorId: idOf(username),
       images: {
-        create: images.map((imageUrl, order) => ({
-          imageUrl,
-          imgOrder: order + 1,
-        })),
+        create: images.map((imageUrl, order) => ({ imageUrl, imgOrder: order + 1 })),
       },
     },
   });
 }
+
 
 await prisma.comment.createMany({
   data: comments.map(({ username, replies, ...comment }) => ({
@@ -55,7 +52,7 @@ await prisma.comment.createMany({
   })),
 });
 
-// 답글은 같은 테이블에 넣되, 가리킬 원댓글이 생긴 뒤에 넣는다.
+// 답글은 원댓글이 생긴 뒤에 같은 테이블에 넣는다.
 const createdComments = await prisma.comment.findMany({ orderBy: { id: 'asc' } });
 
 await prisma.comment.createMany({
@@ -65,15 +62,15 @@ await prisma.comment.createMany({
       postId: comment.postId,
       authorId: idOf(username),
       parentId: comment.id,
-    })),
-  ),
+    }))),
 });
+
 
 const imageCount = posts.reduce((sum, post) => sum + post.images.length, 0);
 
 console.log(
-  `사람 ${names.length}명, 게시물 ${posts.length}개, 사진 ${imageCount}장, ` +
-    `댓글 ${comments.length}개, 답글 ${replies.length}개를 넣었어요.`,
+  `사람${names.length}명, 게시물${posts.length}개, 사진${imageCount}장, ` +
+    `댓글${comments.length}개, 답글${replies.length}개를 넣었어요.`,
 );
 
 await prisma.$disconnect();
