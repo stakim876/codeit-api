@@ -1,10 +1,23 @@
 import express from 'express';
 import * as postService from '../services/postService.js';
+import * as likeService from '../services/likeService.js';
 import { NotFoundError } from '../errors.js';
 import { validateBody } from '../middlewares/validate.js';
 import { postCreateSchema, postUpdateSchema } from '../schemas/postSchema.js';
 
 const router = express.Router();
+
+function parseUserId(req, res, next) {
+  const userId = Number(req.params.userId);
+
+  if (!Number.isInteger(userId)) {
+    next(new NotFoundError('그런 사용자는 없어요'));
+    return;
+  }
+
+  req.userId = userId;
+  next();
+}
 
 // 주소의 id는 정수여야 한다. 통과한 값은 다음 핸들러가 req.postId로 쓴다.
 function parseId(req, res, next) {
@@ -49,6 +62,22 @@ router.patch('/:id', parseId, validateBody(postUpdateSchema), async (req, res) =
 router.delete('/:id', parseId, async (req, res) => {
   const deleted = await postService.removePost(req.postId);
   res.json(deleted);
+});
+
+router.get('/:id/likes', parseId, async (req, res) => {
+  const usernames = await likeService.getLikers(req.postId);
+  res.json(usernames);
+});
+
+// 좋아요 하나는 「게시물 번호 + 사용자 번호」다. PUT과 DELETE는 몇 번을 보내도 결과가 같다.
+router.put('/:id/likes/:userId', parseId, parseUserId, async (req, res) => {
+  const status = await likeService.likePost(req.postId, req.userId);
+  res.json(status);
+});
+
+router.delete('/:id/likes/:userId', parseId, parseUserId, async (req, res) => {
+  const status = await likeService.unlikePost(req.postId, req.userId);
+  res.json(status);
 });
 
 export default router;

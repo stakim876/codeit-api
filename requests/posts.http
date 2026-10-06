@@ -20,9 +20,8 @@ POST http://localhost:3000/api/posts
 Content-Type: application/json
 
 {
-  "username": "pikachu",
-  "profileImage": "https://picsum.photos/seed/yuna/40/40",
-  "postImage": "https://picsum.photos/seed/post4/600/600",
+  "authorId": 1,
+  "imageUrls": ["https://picsum.photos/seed/post4/600/600"],
   "postAlt": "창밖으로 본 저녁 하늘 사진",
   "content": "오늘의 한 장 📷"
 }
@@ -45,3 +44,21 @@ Content-Type: application/json
 
 ### 게시물 지우기
 DELETE http://localhost:3000/api/posts/{{created.id}}
+
+### 좋아요 누르기
+PUT http://localhost:3000/api/posts/3/likes/2
+
+### 좋아요 취소
+DELETE http://localhost:3000/api/posts/3/likes/2
+
+### 1번 게시물 지금 상태
+GET http://localhost:3000/api/posts/1
+
+### 1번 게시물에 좋아요
+PUT http://localhost:3000/api/posts/1/likes/1
+
+### 1번 게시물 좋아요 취소
+DELETE http://localhost:3000/api/posts/1/likes/1
+
+### 1번 게시물 좋아요 누른 사람들
+GET http://localhost:3000/api/posts/1/likes
