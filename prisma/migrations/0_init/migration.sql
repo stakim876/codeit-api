@@ -1,4 +1,3 @@
--- 게시물과 댓글 테이블을 만들고, 댓글은 게시물을 가리킨다.
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
@@ -31,3 +30,4 @@ CREATE TABLE "comments" (
 
 -- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+

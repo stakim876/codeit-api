@@ -1,18 +1,30 @@
+# 복습: 로컬 3000번 게시물 API를 손으로 호출하는 요청 모음
+# 핵심: 목록, 한 건, 생성, 수정, 삭제, 좋아요와 함께 userId로 보는 사람을 지정하는 목록이 있다.
+# 이유: 브라우저 없이 상태 코드와 JSON만 확인하려고 요청을 파일로 둔다.
+# 실행: 생성은 authorId와 imageUrls가 있어야 한다. 마지막 요청은 userId=3, limit=2로 최신 두 개를 본다. seungtae의 시드 번호는 4다.
+# 활용: 라우트를 바꾼 뒤 같은 파일로 목록과 좋아요를 다시 호출한다.
+
 ### 게시물 목록
 # @name list
 GET http://localhost:3000/api/posts
 
-### 최신 두 개만
-GET http://localhost:3000/api/posts?limit=2
-
-### 2번 게시물 하나
-GET http://localhost:3000/api/posts/{{list[1].id}}
+### 목록의 첫 게시물 하나
+GET http://localhost:3000/api/posts/{{list[0].id}}
 
 ### 없는 게시물
-GET http://localhost:3000/api/posts/99
+GET http://localhost:3000/api/posts/999
+
+### 번호가 들어갈 곳에 아무 글자나
+GET http://localhost:3000/api/posts/abc
 
 ### 없는 주소
 GET http://localhost:3000/api/comments
+
+### minji가 올린 것만
+GET http://localhost:3000/api/posts?username=minji
+
+### 최신 두 개만
+GET http://localhost:3000/api/posts?limit=2
 
 ### 게시물 올리기
 # @name created
@@ -20,32 +32,46 @@ POST http://localhost:3000/api/posts
 Content-Type: application/json
 
 {
-  "username": "pikachu",
-  "profileImage": "https://picsum.photos/seed/yuna/40/40",
-  "postImage": "https://picsum.photos/seed/post4/600/600",
-  "postAlt": "창밖으로 본 저녁 하늘 사진",
-  "content": "오늘의 한 장 📷"
+  "authorId": 3,
+  "imageUrls": ["/images/post-8.jpg", "/images/post-9.jpg"],
+  "postAlt": "제주도 바다 사진",
+  "content": "제주 왔어요 🌊"
 }
 
-### 게시물 올리기 (빈 페이로드)
+### 사진 없이 올리기
 POST http://localhost:3000/api/posts
 Content-Type: application/json
 
 {
-
+  "authorId": 3
 }
 
-### 하트 수 고치기
+### 없는 사람 번호로 올리기
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+
+{
+  "authorId": 999,
+  "imageUrls": ["/images/post-8.jpg"]
+}
+
+### 방금 올린 게시물의 하트 수 고치기
 PATCH http://localhost:3000/api/posts/{{created.id}}
 Content-Type: application/json
 
 {
-  "likeCount": 880
+  "likeCount": 7
 }
 
-
-### 게시물 지우기
+### 방금 올린 게시물 지우기
 DELETE http://localhost:3000/api/posts/{{created.id}}
+
+### 깨진 몸통 보내기
+POST http://localhost:3000/api/posts
+Content-Type: application/json
+
+{
+  "authorId": 3
 
 ### 좋아요 누르기
 PUT http://localhost:3000/api/posts/3/likes/2
@@ -53,7 +79,10 @@ PUT http://localhost:3000/api/posts/3/likes/2
 ### 좋아요 취소
 DELETE http://localhost:3000/api/posts/3/likes/2
 
-### 1번 게시물 지금 상태
+### 좋아요 누른 사람들
+GET http://localhost:3000/api/posts/3/likes
+
+### 1번 게시물 지금 상태 — 좋아요 실험 전후로 확인
 GET http://localhost:3000/api/posts/1
 
 ### 1번 게시물에 dahye가 좋아요
@@ -64,3 +93,6 @@ DELETE http://localhost:3000/api/posts/1/likes/1
 
 ### 1번 게시물 좋아요 누른 사람들
 GET http://localhost:3000/api/posts/1/likes
+
+### seungtae(2번)이 보는 최신 두 개
+GET http://localhost:3000/api/posts?userId=3&limit=2

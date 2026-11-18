@@ -1,57 +1,38 @@
-import express, { text } from 'express';
+// ~/instagram-api/lab/practice1.js
+import express from 'express';
 
-const comments  = [
-  {
-    id: 1,
-    postsId: 1,
-    username: 'pikachu',
-    text: '피카피카츄~~',
-  },
-  {
-    id: 2,
-    postId: 1,
-    uaername: 'heartping',
-    text: '티니티니짱~~',
-  },
-  {
-    id: 3,
-    postId: 2,
-    username: 'pikachu',
-    text: '삐까뀨뀨뀨뀨뀨~~',
-  },  
+const comments = [
+  { id: 1, postId: 1, username: 'minji', text: '노을 진짜 예쁘네요' },
+  { id: 2, postId: 1, username: 'seungwoo', text: '저도 어제 갔었어요' },
+  { id: 3, postId: 2, username: 'seungtae', text: '이 카페 어디예요?' },
 ];
 
-let nexId = 4;
+let nextId = 4;
 
 const app = express();
 
 app.use(express.json());
 
 app.get('/api/comments', (req, res) => {
-  res.json(comments);  
+  res.json(comments);
 });
 
 app.post('/api/comments', (req, res) => {
+  const newComment = {
+    ...req.body,
+    id: nextId,
+  };
 
-    const newComment = {
-      ...req.body,
-      id: nexId  
-    };
+  nextId = nextId + 1;
+  comments.push(newComment);
 
-    nextId++;
-
-    comments.push(newComment);
-
-    res.status(201).json(newComment);
+  res.status(201).json(newComment);
 });
 
-
 app.use((req, res) => {
-  res.status(404).json({
-    message: '그런 주소는 없어요.',
-  });
+  res.status(404).json({ message: '그런 주소는 없어요' });
 });
 
 app.listen(4000, () => {
-  console.log('실습 서버가 실행중입니다.');  
+  console.log('실습 서버가 4000번 포트에서 기다리고 있어요.');
 });

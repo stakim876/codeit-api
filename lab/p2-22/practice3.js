@@ -1,20 +1,11 @@
+// ~/instagram-api/lab/practice3.js
 import express from 'express';
 
 const books = [
-  {
-    id: 1,
-    title: '자료구조론',
-  },
-  {
-    id: 2,
-    title: '알고리즘 테스트',
-  },
-  {
-    id: 3,
-    title: 'AI 2027',
-  },
+  { id: 1, title: '어린 왕자' },
+  { id: 2, title: '데미안' },
+  { id: 3, title: '모모' },
 ];
-
 
 const app = express();
 
@@ -24,23 +15,20 @@ app.get('/api/books', (req, res) => {
 
 app.get('/api/books/:id', (req, res) => {
   const id = Number(req.params.id);
-  const found = books.find((book) => book.id === id);
+  const book = books.find((one) => one.id === id);
 
-  if (!found) {
-    res.status(404).json({ 
-      message: '그런 책은 없어요.'
-    });
+  if (!book) {
+    res.status(404).json({ message: '그런 책은 없어요' });
     return;
   }
-  res.json(found);
+
+  res.json(book);
 });
 
 app.use((req, res) => {
-  res.status(404).json({
-    message: '그런 주소는 없어요.',
-  });
+  res.status(404).json({ message: '그런 주소는 없어요' });
 });
 
 app.listen(4000, () => {
-  console.log('실습 서버가 실행중입니다.');  
+  console.log('실습 서버가 4000번 포트에서 기다리고 있어요.');
 });

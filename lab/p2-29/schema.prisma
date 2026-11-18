@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// 작가, 책, 리뷰 테이블. 책은 작가와 리뷰에 연결되고, 품절 여부는 is_sold_out이다.
 model Author {
   id    Int    @id @default(autoincrement())
   name  String @db.VarChar(100)

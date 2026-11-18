@@ -1,11 +1,11 @@
-// 스토리가 MongoDB에 어떤 필드로 저장되는지 정하고, Story 모델로 꺼낸다.
-import mongose from 'mongoose';
+// ~/instagram-api/lab/Story.js
+import mongoose from 'mongoose';
 
-const storySchema = new mongose.Scheme({
+const storySchema = new mongoose.Schema({
   username: { type: String, required: true },
-  isViewed: { type: Boolean, default: false },  
+  isViewed: { type: Boolean, default: false },
 });
 
-const Story = mongose.model('Story', storySchema);
+const Story = mongoose.model('Story', storySchema);
 
 export default Story;

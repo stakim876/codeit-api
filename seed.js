@@ -1,3 +1,11 @@
+/*
+  복습: 샘플 사람과 글, 댓글을 테이블에 넣기
+  핵심: 이름을 정렬해 사용자를 만들고, 글과 사진을 한 번에 넣은 뒤 댓글, 그다음 답글을 넣는다.
+  이유: 글은 사용자 번호가 필요하고, 답글은 원댓글 번호가 필요하다. 표를 비울 때는 외래 키 순서대로 자른다.
+  실행: npm run seed는 좋아요, 사진, 댓글, 글, 사용자를 비우고 번호를 1부터 다시 매긴다. seungtae는 이름 정렬 때문에 4번이 된다.
+  활용: 빈 데이터베이스에 화면이 볼 샘플을 다시 넣을 때 쓴다.
+*/
+
 // ~/instagram-api/seed.js
 import { prisma } from './db.js';
 import { posts } from './data/posts.js';
@@ -8,9 +16,13 @@ function withTimes({ minutesAgo, ...row }) {
   return { ...row, createdAt, updatedAt: createdAt };
 }
 
-await prisma.$executeRaw`TRUNCATE TABLE post_likes, post_images, comments, posts, users RESTART IDENTITY`;
+// 표를 하나 만들 때마다 이 목록에 넣어야 한다.
+// 빠뜨리면 「외래 키가 걸린 표는 못 비운다」며 막힌다.
+await prisma.$executeRaw`
+  TRUNCATE TABLE post_likes, post_images, comments, posts, users RESTART IDENTITY`;
 
-// 사람을 먼저 넣는다. 글과 댓글이 가리킬 대상이다.
+// 사람을 먼저 넣는다 — 게시물과 댓글이 가리킬 대상이라서.
+// 게시물은 안 쓰고 댓글만 쓴 사람도 있으니 세 목록을 함께 훑는다(답글까지).
 const replies = comments.flatMap((comment) => comment.replies ?? []);
 const names = [];
 
@@ -23,15 +35,15 @@ names.sort();
 await prisma.user.createMany({
   data: names.map((username) => ({
     username,
-    profileImage:
-      posts.find((post) => post.username === username)?.profileImage ?? null,
+    profileImage: posts.find((post) => post.username === username)?.profileImage ?? null,
   })),
 });
 
 const users = await prisma.user.findMany();
 const idOf = (username) => users.find((user) => user.username === username).id;
 
-// 글과 사진을 한 번에 만든다.
+// 게시물과 그 사진을 «한 번에» 만든다.
+// 번호를 나중에 다시 읽어서 채워 넣을 일이 없다.
 for (const { username, profileImage, images, ...post } of posts) {
   await prisma.post.create({
     data: {
@@ -44,7 +56,6 @@ for (const { username, profileImage, images, ...post } of posts) {
   });
 }
 
-
 await prisma.comment.createMany({
   data: comments.map(({ username, replies, ...comment }) => ({
     ...withTimes(comment),
@@ -52,7 +63,9 @@ await prisma.comment.createMany({
   })),
 });
 
-// 답글은 원댓글이 생긴 뒤에 같은 테이블에 넣는다.
+// 답글도 같은 comments 표에 들어간다. 다만 가리킬 원댓글이 먼저 있어야 하니 한 박자 뒤다.
+// 여기는 일부러 두 박자로 둔다 — 중첩해서 적으면 답글이 원댓글 바로 뒤에 들어가
+// 댓글 번호가 통째로 밀린다. 지금 번호를 그대로 두려고 이 차례를 지킨다.
 const createdComments = await prisma.comment.findMany({ orderBy: { id: 'asc' } });
 
 await prisma.comment.createMany({
@@ -65,12 +78,10 @@ await prisma.comment.createMany({
     }))),
 });
 
-
 const imageCount = posts.reduce((sum, post) => sum + post.images.length, 0);
 
 console.log(
-  `사람${names.length}명, 게시물${posts.length}개, 사진${imageCount}장, ` +
-    `댓글${comments.length}개, 답글${replies.length}개를 넣었어요.`,
-);
+  `사람 ${names.length}명, 게시물 ${posts.length}개, 사진 ${imageCount}장, `
+  + `댓글 ${comments.length}개, 답글 ${replies.length}개를 넣었어요.`);
 
 await prisma.$disconnect();

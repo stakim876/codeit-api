@@ -1,3 +1,11 @@
+/*
+  복습: 인스타그램 Postgres 테이블을 Prisma 모델로 적기
+  핵심: User, Post, PostImage, PostLike, Comment다. @map은 카멜 케이스 필드를 snake_case 컬럼에 연결한다.
+  이유: 코드는 authorId로 다루고, 이미 있는 컬럼 이름 author_id는 유지한다.
+  실행: 접속 주소는 prisma.config.js의 DATABASE_URL이다. 글을 지우면 댓글, 사진, 좋아요도 지워진다. PostLike의 @@unique는 같은 사람과 글 쌍을 한 줄만 허용한다. User.deactivatedAt은 탈퇴 시각이다.
+  활용: 모델을 바꾼 뒤 마이그레이션을 추가하면 이 설계가 테이블에 반영된다.
+*/
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,11 +14,21 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(50)
+  profileImage String?   @map("profile_image")
+  deactivatedAt DateTime? @map("deactivated_at")
+  posts        Post[]
+  comments     Comment[]
+  likes        PostLike[]
+
+  @@map("users")
+}
 
 model Post {
   id           Int       @id @default(autoincrement())
   authorId     Int       @map("author_id")
-  // 글이 있으면 그 사용자는 지울 수 없다.
   author       User      @relation(fields: [authorId], references: [id])
   postAlt      String?   @map("post_alt")
   content      String?
@@ -20,42 +38,24 @@ model Post {
   updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
   comments     Comment[]
   images       PostImage[]
-  likes        PostLike[]  
+  likes        PostLike[]
 
   @@map("posts")
 }
 
-model Comment {
-  id        Int      @id @default(autoincrement())
-  postId    Int      @map("post_id")
-  authorId  Int      @map("author_id")
-  author    User     @relation(fields: [authorId], references: [id])
-  content   String
-  likeCount Int      @default(0) @map("like_count")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  // 글을 지우면 그 글의 댓글도 지운다.
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  // 답글은 같은 테이블의 원댓글을 가리킨다. 원댓글을 지우면 답글도 지운다.
-  parentId  Int?     @map("parent_id")
-  parent    Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("Replies")
- 
-  @@map("comments")
+// 여럿이 여럿을 가리키는 관계는 «가운데 표» 가 받는다.
+// 한 줄이 「누가 어느 게시물에 눌렀는가」 한 쌍이고, 같은 쌍은 한 번만 들어간다.
+model PostLike {
+  id     Int  @id @default(autoincrement())
+  postId Int  @map("post_id")
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_likes")
 }
 
-model User {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique @db.VarChar(50)
-  profileImage String?   @map("profile_image")
-  posts        Post[]
-  comments     Comment[]
-  likes        PostLike[]
-
-  @@map("users")
-}
-
-// 사진은 별도 행이다. 글을 지우면 사진도 지운다.
 model PostImage {
   id       Int    @id @default(autoincrement())
   postId   Int    @map("post_id")
@@ -66,14 +66,22 @@ model PostImage {
   @@map("post_images")
 }
 
-// 가운데 테이블. 같은 사람과 게시물 쌍은 한 번만 들어간다.
-model PostLike {
-  id     Int  @id @default(autoincrement())
-  postId Int  @map("post_id")
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId Int  @map("user_id")
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int      @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  Int      @map("author_id")
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  likeCount Int      @default(0) @map("like_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@unique([postId, userId])
-  @@map("post_likes")
+  // 같은 표가 자기를 가리킨다 — 답글이 달린 «원댓글» 번호다.
+  // 원댓글은 이 칸이 비어 있으므로 물음표가 붙는다.
+  parentId Int?      @map("parent_id")
+  parent   Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("Replies")
+
+  @@map("comments")
 }

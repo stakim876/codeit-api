@@ -1,4 +1,3 @@
--- 작가, 책, 리뷰 테이블을 만들고 외래 키로 연결한다.
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
@@ -39,3 +38,4 @@ ALTER TABLE "books" ADD CONSTRAINT "books_author_id_fkey" FOREIGN KEY ("author_i
 
 -- AddForeignKey
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "books"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+

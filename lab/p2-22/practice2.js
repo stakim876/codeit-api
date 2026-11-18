@@ -1,35 +1,24 @@
+// ~/instagram-api/lab/practice2.js
 import express from 'express';
 
 const profiles = [
-  {
-    username: 'jaehoon',
-    name: '재훈이',
-    followerCount: 66,
-  },
-  {
-    username: 'minji',
-    name: '민지',
-    followerCount: 400,
-  },
-  {
-    username: 'seungwoo',
-    name: '승우',
-    followerCount: 900,
-  },  
+  { username: 'seungtae', name: '김승태', followerCount: 1240 },
+  { username: 'minji', name: '이민지', followerCount: 8500 },
+  { username: 'seungwoo', name: '박승우', followerCount: 320 },
 ];
 
 const app = express();
 
-app.get('/api/profiles', (res, res) => {
-  res.json(profiles);  
+app.get('/api/profiles', (req, res) => {
+  res.json(profiles);
 });
 
 app.get('/api/profiles/:username', (req, res) => {
-  const username = req.params.username;
-  const founUser = profiles.find(user => user.username === username);
-  res.json(founUser);  
+  const profile = profiles.find((one) => one.username === req.params.username);
+
+  res.json(profile);
 });
 
 app.listen(4000, () => {
-  console.log('실습 서버가 실행중입니다.');  
+  console.log('실습 서버가 4000번 포트에서 기다리고 있어요.');
 });
