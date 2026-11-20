@@ -1,14 +1,14 @@
 // ~/instagram-api/lab/p3-19/practice1.js
 import express from 'express';
-import cookiesParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
-app.use(cookiesParser());
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
-   // 처음 오면 visits 쿠키가 없다 ㅡ 그때는 0번 왔던 것으로 친다.
-   const before = Number(req,cookies.visits) || 0;
+   // 처음 오면 visits 쿠키가 없다 — 그때는 0번 왔던 것으로 친다.
+   const before = Number(req.cookies.visits) || 0;
    const visits = before + 1;
 
    res.cookie('visits', String(visits));

@@ -1,0 +1,42 @@
+# 복습: 로컬 3000번 로그인 API를 손으로 호출하는 요청 모음
+# 핵심: 로그인, 없는 이름, 쿠키로 나는 누구, 잘못된 쿠키와 Bearer, 로그아웃이 있다.
+# 이유: 브라우저 없이 세션 쿠키와 401만 확인하려고 요청을 파일로 둔다.
+# 실행: seungtae는 시드에 있다. hana는 없다. userId=1, Bearer 1, sessionId=1은 서버가 만든 세션 ID가 아니라서 /me가 401이다.
+# 활용: 로그인 다음에 나는 누구를 보내면 httpyac가 쿠키를 이어서 그 사용자를 돌려준다.
+
+### 로그인
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "seungtae"
+}
+
+### 없는 이름으로 로그인
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "hana"
+}
+
+### 나는 누구
+GET http://localhost:3000/api/auth/me
+
+### 쿠키를 고쳐서 보내면
+# @no-cookie-jar
+GET http://localhost:3000/api/auth/me
+Cookie: userId=1
+
+### 헤더로 보내면
+# @no-cookie-jar
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer 1
+
+### 쿠키를 고쳐서 보내면
+# @no-cookie-jar
+GET http://localhost:3000/api/auth/me
+Cookie: sessionId=1
+
+### 로그아웃
+POST http://localhost:3000/api/auth/logout

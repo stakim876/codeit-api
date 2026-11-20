@@ -6,7 +6,8 @@ const app = express();
 app.get('/set', (req, res) => {
   res.cookie('strict', '1', { sameSite: 'strict' });
   res.cookie('lax', '1', { sameSite: 'lax' });
-  // SameSite 를 안 적은 쿠키 ㅡ 브라우저의 기본값에 맡긴다.
+  res.cookie('none', '1', { sameSite: 'none', secure: true });
+  // SameSite 를 안 적은 쿠키 — 브라우저의 기본값에 맡긴다.
   res.cookie('plain', '1');
   res.send('쿠키 네 개를 줬어요');  
 });
@@ -24,7 +25,7 @@ app.get('/other-site', (req, res) => {
 <meta charset="utf-8">
 <p><a href="http://localhost:4003/check?from=link">링크로 가기</a></p>
 <form method="post" action="http://localhost:4003/check?from=form">
-  <buttom>폼으로 보내기</button>
+  <button>폼으로 보내기</button>
 </form>
 <img src="http://localhost:4003/check?from=image" alt="">`);      
 });
