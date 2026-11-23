@@ -1,0 +1,23 @@
+# 복습: 4002번 메모 서버에 JSON과 글자 형식을 보내 보기
+# 핵심: 첫 POST는 application/json, 둘째는 text/plain, 마지막은 목록 GET이다.
+# 이유: JSON이 아닌 POST가 415로 막히는지 브라우저 없이 확인하려고 요청을 파일로 둔다.
+# 실행: node lab/p3-27/practice2.js를 먼저 켠다. 첫 요청은 201, 둘째는 415, 목록에는 첫 메모만 있다.
+
+### 메모 올리기
+POST http://localhost:4002/api/notes
+Content-Type: application/json
+
+{
+  "text": "우유 사기"
+}
+
+### 같은 메모를 글자 형식으로 올리기
+POST http://localhost:4002/api/notes
+Content-Type: text/plain
+
+{
+  "text": "우유 사기"
+}
+
+### 메모 목록
+GET http://localhost:4002/api/notes
