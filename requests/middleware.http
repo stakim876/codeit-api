@@ -1,0 +1,24 @@
+# 복습: 본문 형식, 잘못된 수정, 공백이 붙은 중복 확인
+# 핵심: text/plain 게시물 생성, 번호와 좋아요가 틀린 수정, 앞뒤 공백이 있는 사용자 이름 중복 확인이 있다.
+# 이유: validateQuery가 공백을 자른 값을 res.locals.query로 넘기는지 보려면 주소에 %20이 들어가야 한다.
+# 실행: 서버는 3000번이다. 마지막 요청의 value는 공백을 자르면 minji다.
+
+### JSON이 아닌 형식으로 올리기
+POST http://localhost:3000/api/posts
+Content-Type: text/plain
+
+{
+  "authorId": 3,
+  "content": "글자 형식으로 보냈어요"
+}
+
+### 번호도 본문도 틀린 수정
+PATCH http://localhost:3000/api/posts/abc
+Content-Type: application/json
+
+{
+  "likeCount": -1
+}
+
+### 앞뒤에 공백이 든 이메일로 중복 확인
+GET http://localhost:3000/api/auth/check-duplicate?type=username&value=%20minji%20

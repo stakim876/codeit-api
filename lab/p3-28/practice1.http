@@ -1,0 +1,39 @@
+# 복습: 4001번 공지 서버에서 제목 검사 순서를 확인하는 요청
+# 핵심: 정상 수정, 빈 제목, 없는 번호, 글자 번호, 다시 조회가 있다.
+# 이유: 없는 공지는 제목 검사보다 먼저 404가 나는지 브라우저 없이 보려고 요청을 파일로 둔다.
+# 실행: node lab/p3-28/practice1.js를 먼저 켠다. 빈 제목은 400, 9번과 abc는 404, 마지막 GET은 바뀐 제목이다.
+
+### 1번 공지 제목 고치기
+PATCH http://localhost:4001/api/notices/1
+Content-Type: application/json
+
+{
+  "title": "서버 점검 시간 변경"
+}
+
+### 1번 공지를 빈 제목으로
+PATCH http://localhost:4001/api/notices/1
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### 없는 9번 공지를 빈 제목으로
+PATCH http://localhost:4001/api/notices/9
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### 번호 대신 글자를 넣고 빈 제목으로
+PATCH http://localhost:4001/api/notices/abc
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### 1번 공지 지금 상태
+GET http://localhost:4001/api/notices/1
