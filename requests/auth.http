@@ -1,8 +1,8 @@
-# 복습: 로컬 3000번 로그인 API를 손으로 호출하는 요청 모음
-# 핵심: 로그인, 없는 이름, 쿠키로 나는 누구, 잘못된 쿠키와 Bearer, 로그아웃이 있다.
-# 이유: 브라우저 없이 세션 쿠키와 401만 확인하려고 요청을 파일로 둔다.
-# 실행: seungtae는 시드에 있다. hana는 없다. userId=1, Bearer 1, sessionId=1은 서버가 만든 세션 ID가 아니라서 /me가 401이다.
-# 활용: 로그인 다음에 나는 누구를 보내면 httpyac가 쿠키를 이어서 그 사용자를 돌려준다.
+# 복습: 로컬 3000번 로그인과 회원가입 API를 손으로 호출하는 요청 모음
+# 핵심: 로그인, 없는 이름, 쿠키로 나는 누구, 잘못된 쿠키와 Bearer, 로그아웃, 회원가입, 중복 확인이 있다.
+# 이유: 브라우저 없이 세션 쿠키와 401, 가입 201, 중복 409만 확인하려고 요청을 파일로 둔다.
+# 실행: seungtae는 시드에 있다. hana는 없다. userId=1, Bearer 1, sessionId=1은 서버가 만든 세션 ID가 아니라서 /me가 401이다. seungtae로 다시 가입하면 409다.
+# 활용: 로그인 다음에 나는 누구를 보내면 httpyac가 쿠키를 이어서 그 사용자를 돌려준다. 가입 전에 check-duplicate로 이름과 번호를 확인한다.
 
 ### 로그인
 POST http://localhost:3000/api/auth/login
@@ -40,3 +40,42 @@ Cookie: sessionId=1
 
 ### 로그아웃
 POST http://localhost:3000/api/auth/logout
+
+### 회원가입
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "emailOrPhone": "sora@example.com",
+  "name": "한소라",
+  "username": "sora",
+  "password": "sora1234"
+}
+
+### 전화번호로 회원가입
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "emailOrPhone": "010-1234-5678",
+  "name": "피카츄",
+  "username": "pikachu",
+  "password": "pikachu1234"
+}
+
+### 이미 있는 사용자 이름으로 가입
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "emailOrPhone": "seungtae@example.com",
+  "name": "김승태",
+  "username": "seungtae",
+  "password": "seungtae1234"
+}
+
+### 사용자 이름 중복 확인
+GET http://localhost:3000/api/auth/check-duplicate?type=username&value=sora
+
+### 휴대폰 번호 중복 확인
+GET http://localhost:3000/api/auth/check-duplicate?type=phone&value=010-1234-5677

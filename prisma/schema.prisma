@@ -1,8 +1,8 @@
 /*
   복습: 인스타그램 Postgres 테이블을 Prisma 모델로 적기
-  핵심: User, Post, PostImage, PostLike, Comment다. @map은 카멜 케이스 필드를 snake_case 컬럼에 연결한다.
+  핵심: User, Post, PostImage, PostLike, Comment다. User는 가입용 email, phone, name을 가진다. @map은 카멜 케이스 필드를 snake_case 컬럼에 연결한다.
   이유: 코드는 authorId로 다루고, 이미 있는 컬럼 이름 author_id는 유지한다.
-  실행: 접속 주소는 prisma.config.js의 DATABASE_URL이다. 글을 지우면 댓글, 사진, 좋아요도 지워진다. PostLike의 @@unique는 같은 사람과 글 쌍을 한 줄만 허용한다. User.deactivatedAt은 탈퇴 시각이다.
+  실행: 접속 주소는 prisma.config.js의 DATABASE_URL이다. 글을 지우면 댓글, 사진, 좋아요도 지워진다. PostLike의 @@unique는 같은 사람과 글 쌍을 한 줄만 허용한다. User.email과 User.phone은 비어 있을 수 있고, 값이 있으면 각각 한 번만 허용한다. User.deactivatedAt은 탈퇴 시각이다.
   활용: 모델을 바꾼 뒤 마이그레이션을 추가하면 이 설계가 테이블에 반영된다.
 */
 
@@ -17,6 +17,10 @@ datasource db {
 model User {
   id           Int       @id @default(autoincrement())
   username     String    @unique @db.VarChar(50)
+  // 가입할 때 이메일이나 휴대폰 번호 중 하나만 채운다. 비밀번호 컬럼은 아직 없다.
+  email        String?   @unique @db.VarChar(255)
+  phone        String?   @unique @db.VarChar(20)
+  name         String?   @db.VarChar(50)
   profileImage String?   @map("profile_image")
   deactivatedAt DateTime? @map("deactivated_at")
   posts        Post[]
