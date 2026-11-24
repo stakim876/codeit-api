@@ -4,7 +4,7 @@ import express from 'express';
 const app = express();
 
 app.get('/me', (req, res) => {
-  res.send('홍순구입니다');
+  res.send('김승태입니다');
 });
 
 app.listen(4000, () => {
