@@ -1,12 +1,14 @@
 /*
-  복습: 게시물 목록에서 보는 사람의 좋아요 여부 붙이기
-  핵심: author와 images를 username, profileImage, imageUrls로 펼친다. userId가 있으면 그 사람의 좋아요 수가 0보다 큰지 liked로 붙인다.
-  이유: 표는 사람과 사진이 나뉘어 있고, 화면은 이름과 주소 배열과 내가 눌렀는지를 원한다.
-  실행: limit 기본값은 5다. 한 개 더 읽어 hasNext를 정하고, 커서가 있으면 그 id는 skip한다. 정렬은 작성 시각, 그다음 id 내림차순이다. userId가 없으면 liked는 false다. 없는 글은 404, 없는 작성자로 만들면 400이다.
-  활용: 피드가 /api/posts?userId=와 limit, cursor로 다음 페이지를 받을 때 쓴다.
+  복습: 게시물 목록에서 보는 사람의 좋아요 여부 붙이기, 글을 지우면 올린 사진도 지우기
+  핵심: author와 images를 username, profileImage, imageUrls로 펼친다. 글을 지운 뒤에는 /uploads로 시작하는 주소만 path.basename으로 파일 이름을 꺼내 지운다.
+  이유: 표는 사람과 사진이 나뉘어 있고, 화면은 이름과 주소 배열을 원한다. https 주소는 우리 파일이 아니라서 건너뛴다. basename이 없으면 ../로 uploads 밖까지 지울 수 있다.
+  실행: limit 기본값은 5다. 한 개 더 읽어 hasNext를 정하고, 커서가 있으면 그 id는 skip한다. userId가 없으면 liked는 false다. 없는 글은 404, 없는 작성자로 만들면 400이다. 파일 삭제에 실패해도 글 삭제는 200이다.
+  활용: 피드가 /api/posts?userId=와 limit, cursor로 다음 페이지를 받을 때 쓴다. 화면이 직접 올린 사진은 글을 지우면 같이 사라진다.
 */
 
 // ~/instagram-api/services/postService.js
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import { prisma } from '../db.js';
 import { BadRequestError, NotFoundError } from '../errors.js';
 
@@ -108,16 +110,36 @@ export async function updatePost(id, data) {
   }
 }
 
+// 우리 서버에 올린 사진 파일을 지운다. 바깥 주소(https://…)의 사진은 우리 파일이 아니라 건너뛴다.
+async function removeUploadedFiles(imageUrls) {
+  const uploaded = imageUrls.filter((imageUrl) => imageUrl.startsWith('/uploads/'));
+
+  for (const imageUrl of uploaded) {
+    try {
+      // 주소에서 파일 이름만 꺼낸다 — 주소에 ../ 가 섞여 와도 uploads 폴더 밖은 못 건드린다.
+      await rm(path.join('uploads', path.basename(imageUrl)), { force: true });
+    } catch (error) {
+      // 게시물은 이미 지웠다 — 파일 하나를 못 지웠다고 요청을 실패로 돌리지 않고, 기록만 남기고 다음 파일로 간다.
+      console.error(error);
+    }
+  }
+}
+
 export async function removePost(id) {
+  let post;
   try {
-    const post = await prisma.post.delete({
+    post = await prisma.post.delete({
       where: { id },
       select: postFields,
     });
-
-    return flatten(post);
   } catch (error) {
     if (error.code === 'P2025') throw new NotFoundError('그런 게시물은 없어요');
     throw error;
   }
+
+  // 테이블에서 먼저 지우고, 파일은 그다음에 지운다.
+  const deleted = flatten(post);
+  await removeUploadedFiles(deleted.imageUrls);
+
+  return deleted;
 }

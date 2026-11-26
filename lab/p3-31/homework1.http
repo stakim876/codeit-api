@@ -1,0 +1,74 @@
+### 사진을 붙인 공지
+# @name noticed
+POST http://localhost:4011/api/notices
+Content-Type: multipart/form-data; boundary=notice-boundary
+
+--notice-boundary
+Content-Disposition: form-data; name="title"
+
+서버 점검 안내
+--notice-boundary
+Content-Disposition: form-data; name="pinned"
+
+true
+--notice-boundary
+Content-Disposition: form-data; name="image"; filename="beach.jpg"
+Content-Type: image/jpeg
+
+< ../../requests/photos/beach.jpg
+--notice-boundary--
+
+### 사진 없는 공지
+POST http://localhost:4011/api/notices
+Content-Type: multipart/form-data; boundary=notice-boundary
+
+--notice-boundary
+Content-Disposition: form-data; name="title"
+
+새 기능 소개
+--notice-boundary
+Content-Disposition: form-data; name="pinned"
+
+false
+--notice-boundary--
+
+### 제목 없는 공지
+POST http://localhost:4011/api/notices
+Content-Type: multipart/form-data; boundary=notice-boundary
+
+--notice-boundary
+Content-Disposition: form-data; name="pinned"
+
+false
+--notice-boundary--
+
+### 공백만 적은 제목
+POST http://localhost:4011/api/notices
+Content-Type: multipart/form-data; boundary=notice-boundary
+
+--notice-boundary
+Content-Disposition: form-data; name="title"
+
+   
+--notice-boundary--
+
+### 사진이 아닌 파일을 붙인 공지
+POST http://localhost:4011/api/notices
+Content-Type: multipart/form-data; boundary=notice-boundary
+
+--notice-boundary
+Content-Disposition: form-data; name="title"
+
+사진 공지
+--notice-boundary
+Content-Disposition: form-data; name="image"; filename="memo.txt"
+Content-Type: text/plain
+
+< ../../requests/photos/memo.txt
+--notice-boundary--
+
+### 첫 공지의 사진 열기
+GET http://localhost:4011{{noticed.imageUrl}}
+
+### 공지 목록
+GET http://localhost:4011/api/notices
